@@ -1,0 +1,1 @@
+The main script of this pipeline is pipeline_erne.sh. The pipeline simulates a methylation experiment, executes the aligner and methylation caller, and counts the number of correctly called methylations. To modify parameters, edit testcase-bs-aligner-default.sh.
