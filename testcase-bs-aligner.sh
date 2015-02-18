@@ -28,7 +28,7 @@ error_profile_1=$simseq_folder/examples/hiseq_mito_default_bwa_mapping_mq10_1.tx
 error_profile_2=$simseq_folder/examples/hiseq_mito_default_bwa_mapping_mq10_2.txt
 
 shopt -s expand_aliases
-alias simseq='java -jar -Xmx2048m $simseq_jar'
+alias simseq='java -jar -Xmx4000m $simseq_jar'
 alias fastx-mutate-tools='java -jar $fastx_mutate_tools_jar'
 
 #1) insert SNPs in the original genome
