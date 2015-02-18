@@ -13,7 +13,6 @@ bismark_bed_fwd=$io_folder/bismark_bed_fwd.bed
 bismark_bed_rev=$io_folder/bismark_bed_rev.bed
 
 
-
 #output format of the bed is : chr pos pos coverage beta
 cat $annot_bismark | grep '+' | awk '($4+$5)>0{cov=($4+$5);beta=$4/cov; print $1"\t"$2"\t"$2"\t"cov"\t"beta}' > $bismark_bed_fwd
 
@@ -42,3 +41,6 @@ tot_rev=`cat $diff_rev | wc -l`
 tot=$((tot_fwd+tot_rev))
 
 printf "\nnumber of correct calls/total number of calls: "$correct"/"$tot"\n"
+
+rm $diff_fwd
+rm $diff_rev

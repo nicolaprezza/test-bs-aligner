@@ -1,0 +1,1 @@
+The main script of this pipeline is pipeline_bismark_and_erne.sh. The pipeline simulates a methylation experiment, executes the erne/bismark aligners and methylation callers, and counts the number of correctly called methylations and total number of called methylations. To modify parameters, edit testcase-bs-aligner-default.sh.
