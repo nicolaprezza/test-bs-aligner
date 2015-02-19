@@ -8,6 +8,7 @@
 #requires: realpath
 #requires: fastx-toolkit (http://hannonlab.cshl.edu/fastx_toolkit/)
 #requires: gawk, awk
+#requires: erne (http://erne.sourceforge.net/)
 
 genome=$1
 output_folder=`realpath $2`
@@ -151,13 +152,19 @@ rm ${reads1}_temp
 
 #6) insert indels and create final reads
 
-reads_indel1=$output_folder/query1.fq
-reads_indel2=$output_folder/query2.fq
+reads_indel1=$output_folder/query1_ind.fq
+reads_indel2=$output_folder/query2_ind.fq
 
 fastx-mutate-tools indel --input ${reads1} --output $reads_indel1 --open $indel_open_freq --extend $indel_ext_freq
 rm ${reads1}
 fastx-mutate-tools indel --input ${reads2} --output $reads_indel2 --open $indel_open_freq --extend $indel_ext_freq
 rm ${reads2}
 
+#7) filter
+
+output_prefix=$output_folder/query
+erne-filter --query1 $reads_indel1 --query2 $reads_indel2 --output-prefix $output_prefix
+
+rm $reads_indel1 $reads_indel2
 
 
