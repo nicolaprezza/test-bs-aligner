@@ -1,0 +1,29 @@
+#compares meth annotations in bismark cov format with those produced by the script testcase-bs-aligner.sh
+#usage: compare_meth_annotations_cov_format.sh <annotations in bismark cov format> <input_output_folder> <max_diff> <min coverage>
+#where input_output_folder is the folder containing the files meth_annotations_fwd.bed and meth_annotations_rev.bed. max_diff is a value in [0,1]. A position is considered only if covered with >= <min coverage> bases. A methylation call is considered as correct if the absolute difference between the call and the correct beta value does not exceed max_diff (included: |beta-correct_beta|<=max_diff)
+
+annot_bismark=$1
+io_folder=`realpath $2`
+max_diff=$3
+min_covg=$4
+
+#merge true meth annotations in one single bed file
+
+meth_annotations_merged_bed=$io_folder/meth_annotations_merged.bed
+cat $io_folder/meth_annotations_fwd.bed $io_folder/meth_annotations_rev.bed | bedtools sort > $meth_annotations_merged_bed
+
+#intersect and compute meth difference
+
+differences=$io_folder/bismark_differences.txt
+bedtools intersect -a $meth_annotations_merged_bed -b $1 -wa -wb | awk -v min_cov=$min_covg '($2==$7 && $10+$11 >= min_cov){beta=$9/100;cov=$10+$11;diff=sqrt(($5-beta)*($5-beta)); print $1"\t"$2"\t"diff"\t"cov}' > $differences
+
+#now count correct methylations
+
+correct=`cat $differences | awk -v max=$max_diff '$3<=max {print}' | wc -l`
+
+tot=`cat $differences| wc -l`
+
+printf "\nnumber of correct calls/total number of calls: "$correct"/"$tot"\n"
+
+rm $meth_annotations_merged_bed
+#rm $differences

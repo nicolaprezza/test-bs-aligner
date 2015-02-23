@@ -1,0 +1,46 @@
+#compares meth annotations in bismark cytosine format with those produced by the script testcase-bs-aligner.sh
+#usage: compare_meth_annotations_cytosine_format.sh <annotations in bismark cytosine format> <input_output_folder> <max_diff> <min coverage>
+#where input_output_folder is the folder containing the files meth_annotations_fwd.bed and meth_annotations_rev.bed. max_diff is a value in [0,1]. A position is considered only if covered with >= <min coverage> bases. A methylation call is considered as correct if the absolute difference between the call and the correct beta value does not exceed max_diff (included: |beta-correct_beta|<=max_diff)
+
+annot_bismark=$1
+io_folder=`realpath $2`
+max_diff=$3
+min_covg=$4
+
+# produce a bed file from bismark output
+
+bismark_bed_fwd=$io_folder/bismark_bed_fwd.bed
+bismark_bed_rev=$io_folder/bismark_bed_rev.bed
+
+
+#output format of the bed is : chr pos pos coverage beta
+cat $annot_bismark | grep '+' | awk '($4+$5)>0{cov=($4+$5);beta=$4/cov; print $1"\t"$2"\t"$2"\t"cov"\t"beta}' > $bismark_bed_fwd
+
+#note: since bismark format subtracts from the coordinate the context length, we have to fix this.
+cat $annot_bismark | grep '-' | awk '($4+$5)>0{cov=($4+$5);beta=$4/cov;realpos=$2+(length($6)-1); print $1"\t"realpos"\t"realpos"\t"cov"\t"beta}' > $bismark_bed_rev
+
+diff_fwd=$io_folder/diff_fwd.bed
+diff_rev=$io_folder/diff_rev.bed
+
+bedtools intersect -a $bismark_bed_fwd -b $io_folder/meth_annotations_fwd.bed -wa -wb | cut -f 1,2,4,5,7,10 | awk -v min_cov=$min_covg '($2==$5 && $3>=min_cov){diff=sqrt(($4-$6)^2); print $1"\t"$2"\t"$3"\t"diff}' > $diff_fwd
+
+rm $bismark_bed_fwd
+
+bedtools intersect -a $bismark_bed_rev -b $io_folder/meth_annotations_rev.bed -wa -wb | cut -f 1,2,4,5,7,10 | awk -v min_cov=$min_covg '($2==$5 && $3>=min_cov){diff=sqrt(($4-$6)^2); print $1"\t"$2"\t"$3"\t"diff}' > $diff_rev
+
+rm $bismark_bed_rev
+
+#now count correct methylations
+
+correct_fwd=`cat $diff_fwd | awk -v max=$max_diff '$4<=max {print}' | wc -l`
+correct_rev=`cat $diff_rev | awk -v max=$max_diff '$4<=max {print}' | wc -l`
+correct=$((correct_fwd+correct_rev))
+
+tot_fwd=`cat $diff_fwd | wc -l`
+tot_rev=`cat $diff_rev | wc -l`
+tot=$((tot_fwd+tot_rev))
+
+printf "\nnumber of correct calls/total number of calls: "$correct"/"$tot"\n"
+
+rm $diff_fwd
+rm $diff_rev
