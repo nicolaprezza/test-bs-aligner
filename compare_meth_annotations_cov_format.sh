@@ -9,21 +9,14 @@ min_covg=$4
 
 #merge true meth annotations in one single bed file
 
-meth_annotations_merged_bed=$io_folder/meth_annotations_merged.bed
-cat $io_folder/meth_annotations_fwd.bed $io_folder/meth_annotations_rev.bed | bedtools sort > $meth_annotations_merged_bed
+meth_annotations_fwd_bed=$io_folder/meth_annotations_fwd.bed 
+meth_annotations_rev_bed=$io_folder/meth_annotations_rev.bed
 
-#intersect and compute meth difference
+total=`bedtools intersect -a $meth_annotations_fwd_bed -b $1 -wa -wb | awk -v min_covg=$min_covg '($10+$11>=min_covg && $2==$7){print}'|wc -l`
+total=$((total+`bedtools intersect -a $meth_annotations_rev_bed -b $1 -wa -wb | awk -v min_covg=$min_covg '($10+$11>=min_covg && $2==$7){print}'|wc -l`))
 
-differences=$io_folder/bismark_differences.txt
-bedtools intersect -a $meth_annotations_merged_bed -b $1 -wa -wb | awk -v min_cov=$min_covg '($2==$7 && $10+$11 >= min_cov){beta=$9/100;cov=$10+$11;diff=sqrt(($5-beta)*($5-beta)); print $1"\t"$2"\t"diff"\t"cov}' > $differences
+correct=`bedtools intersect -a $meth_annotations_fwd_bed -b $1 -wa -wb | awk -v min_covg=$min_covg -v maxdiff=$max_diff '(($10+$11>=min_covg) && ($2==$7) && (sqrt( ($5-($9/100))*($5-($9/100))) )<=maxdiff ){print}'|wc -l` 
 
-#now count correct methylations
+correct=$((correct+`bedtools intersect -a $meth_annotations_rev_bed -b $1 -wa -wb | awk -v min_covg=$min_covg -v maxdiff=$max_diff '(($10+$11>=min_covg) && ($2==$7) && (sqrt( ($5-($9/100))*($5-($9/100))) )<=maxdiff ){print}'|wc -l`))
 
-correct=`cat $differences | awk -v max=$max_diff '$3<=max {print}' | wc -l`
-
-tot=`cat $differences| wc -l`
-
-printf "\nnumber of correct calls/total number of calls: "$correct"/"$tot"\n"
-
-rm $meth_annotations_merged_bed
-#rm $differences
+printf "\nnumber of correct calls/total number of calls: "$correct"/"$total"\n"

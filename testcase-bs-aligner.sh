@@ -25,6 +25,9 @@ bs_conversion_rate=${11}
 simseq_jar=$simseq_folder/SimSeqNBProject/store/SimSeq.jar
 fastx_mutate_tools_jar=$fastx_mutate_tools_folder/FastxMutateTools.jar
 
+#error_profile_1=$simseq_folder/examples/illumina_hg19_erne_map.txt
+#error_profile_2=$error_profile_1
+
 error_profile_1=$simseq_folder/examples/hiseq_mito_default_bwa_mapping_mq10_1.txt
 error_profile_2=$simseq_folder/examples/hiseq_mito_default_bwa_mapping_mq10_2.txt
 

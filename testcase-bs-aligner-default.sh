@@ -13,12 +13,13 @@ input_genome=$1
 output_folder=`realpath $2`
 simseq_folder=~/workspace/SimSeq
 fastx_mutate_tools_folder=~/workspace/fastx-mutate-tools
-snp_frequency=0.01 #on average, 1 snp per read
-indel_open_freq=0.00032 #notes: equivalent to inserting 1M indels in the human genome
-indel_ext_freq=0.8 #notes: average indel length is 5
-number_of_pairs=1000
+snp_frequency=0.005 #on average, 1 snp every 200 bases
+indel_open_freq=0.0003 #equivalent to inserting 1M indels in the human genome
+indel_ext_freq=0.8 #average indel length is 5
+#number_of_pairs=1500
+number_of_pairs=100000000 #avg coverage = 3
 read_length=100
 bs_failure_rate=2 #percentage of read pairs that fail to be bs-converted
-bs_conversion_rate=0.7 #all Cs on fw/rev strands are converted to Ts with this probability
+bs_conversion_rate=0.5 #all Cs on fw/rev strands are converted to Ts with this probability
 
 ./testcase-bs-aligner.sh $input_genome $output_folder $simseq_folder $fastx_mutate_tools_folder $snp_frequency $indel_open_freq $indel_ext_freq $number_of_pairs $read_length $bs_failure_rate $bs_conversion_rate

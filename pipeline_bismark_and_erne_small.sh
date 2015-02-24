@@ -7,14 +7,17 @@ wd=/home/nicola/workspace/datasets/alignments/erne-vs-bismark-small #working dir
 
 fasta=/home/nicola/workspace/datasets/genomes/50000/50000.fasta
 #fasta=/home/nicola/workspace/datasets/genomes/hg19/ucsc.hg19.fasta
+#fasta=/home/nicola/workspace/datasets/genomes/hg10M/ucsc.hg19.10M.fasta
 
 temp_dir=~/workspace/datasets/alignments/bismark/temp/ #bismark temp folder
 
 #genome_folder=~/workspace/datasets/genomes/hg19/bismark/ #bismark genome folder
 genome_folder=~/workspace/datasets/genomes/50000/bismark/
+#genome_folder=/home/nicola/workspace/datasets/genomes/hg10M/bismark/
 
 #erne_ref=/home/nicola/workspace/datasets/genomes/hg19/ucsc.hg19.ebm
 erne_ref=/home/nicola/workspace/datasets/genomes/50000/50000.ebm
+#erne_ref=/home/nicola/workspace/datasets/genomes/hg10M/ucsc.hg19.10M.ebm
 
 erne_bs5_benchmark=$wd/erne_bs5_benchmark.txt
 erne_meth_benchmark=$wd/erne_meth_benchmark.txt
@@ -35,7 +38,7 @@ query2=$wd/query_2.fastq
 /usr/bin/time -v erne-bs5 --reference $erne_ref --query1 $query1 --query2 $query2 --output $wd/erne_bs5_out.bam --threads 4 2> $erne_bs5_benchmark
 
 #call methylation with the caller erne-meth, generating methylation annotations in bismark format 
-/usr/bin/time -v erne-meth --fasta $fasta --input $wd/erne_bs5_out.bam --output-prefix $wd/erne_meth_out --annotations-bismark 2> $erne_meth_benchmark
+/usr/bin/time -v erne-meth --fasta $fasta --input $wd/erne_bs5_out.bam --output-prefix $wd/erne_meth_out --annotations-erne --multiple-mode 2> $erne_meth_benchmark
 
 
 # 3) run bismark
@@ -55,10 +58,10 @@ rm ${query1}_bismark_bt2_pe.bedGraph $wd/*.txt.gz ${query1}_bismark_bt2_pe.M-bia
 # 4) print stats
 
 min_cov=2
-max_diff=0.2
+max_diff=0.49
 #count number of calls that are 20% from the correct value (ERNE) and are covered with at least min_cov bases
 printf "ERNE results:\n"
-./compare_meth_annotations_cytosine_format.sh $wd/erne_meth_out_bismark.bed $wd/ $max_diff $min_cov
+./compare_meth_annotations_erne_format.sh $wd/erne_meth_out_erne_meth.txt $wd/ $max_diff $min_cov
 
 printf "\nBISMARK results:\n"
 ./compare_meth_annotations_cov_format.sh ${query1}_bismark_bt2_pe.bismark.cov $wd/ $max_diff $min_cov

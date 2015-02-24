@@ -25,7 +25,6 @@ query1=$wd/query_1.fastq
 query2=$wd/query_2.fastq
 
 echo "1) simulate dataset"
-#rm wd/*
 
 ./testcase-bs-aligner-default.sh $fasta $wd
 
@@ -34,13 +33,13 @@ echo "2) run erne"
 echo "align with the BS-aligner erne-bs5"
 /usr/bin/time -v erne-bs5 --reference $erne_ref --query1 $query1 --query2 $query2 --output $wd/erne_bs5_out.bam --threads 4 2> $erne_bs5_benchmark
 
-echo "call methylation with the caller erne-meth, generating methylation annotations in bismark format"
-/usr/bin/time -v erne-meth --fasta $fasta --input $wd/erne_bs5_out.bam --output-prefix $wd/erne_meth_out --annotations-bismark 2> $erne_meth_benchmark
-
+echo "call methylation with the caller erne-meth, generating methylation annotations in erne format"
+/usr/bin/time -v erne-meth --fasta $fasta --input $wd/erne_bs5_out.bam --output-prefix $wd/erne_meth_out --annotations-erne --multiple-mode 2> $erne_meth_benchmark
 
 echo "3) run bismark"
 
 echo "align with the BS-aligner bismark"
+#note: -p 2 -> bismark uses 2*2+1 = 5 threads
 /usr/bin/time -v  bismark --bowtie2 $genome_folder -1 $query1 -2 $query2 -o $wd --temp_dir $temp_dir -p 2 --bam 2> $bismark_aligner_benchmark
 
 samfile=${query1}_bismark_bt2_pe.bam
@@ -54,10 +53,10 @@ rm ${query1}_bismark_bt2_pe.bedGraph $wd/*.txt.gz ${query1}_bismark_bt2_pe.M-bia
 echo "4) print stats"
 
 min_cov=2
-max_diff=0.2
-#count number of calls that are 20% from the correct value (ERNE) and are covered with at least min_cov bases
+max_diff=0.49
+#count number of correct calls
 printf "ERNE results:\n"
-./compare_meth_annotations_cytosine_format.sh $wd/erne_meth_out_bismark.bed $wd/ $max_diff $min_cov
+./compare_meth_annotations_erne_format.sh $wd/erne_meth_out_erne_meth.bed $wd/ $max_diff $min_cov
 
 printf "\nBISMARK results:\n"
 ./compare_meth_annotations_cov_format.sh ${query1}_bismark_bt2_pe.bismark.cov $wd/ $max_diff $min_cov
