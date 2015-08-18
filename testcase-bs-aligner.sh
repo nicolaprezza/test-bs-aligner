@@ -21,6 +21,7 @@ number_of_pairs=$8
 read_length=$9
 bs_failure_rate=${10}
 bs_conversion_rate=${11}
+create_bed=${12}
 
 simseq_jar=$simseq_folder/SimSeqNBProject/store/SimSeq.jar
 fastx_mutate_tools_jar=$fastx_mutate_tools_folder/FastxMutateTools.jar
@@ -53,7 +54,7 @@ failed_bs_sam=$output_folder/failed_bs.sam
 reads1=$output_folder/reads_1.fq
 reads2=$output_folder/reads_2.fq
 
-simseq -1 $read_length -2 $read_length --error $error_profile_1 --error2 $error_profile_2 -n $number_bs_failed_pairs -o $failed_bs_sam -p failed_bs -r $genome_with_snps 
+simseq --inf_id -1 $read_length -2 $read_length --error $error_profile_1 --error2 $error_profile_2 -n $number_bs_failed_pairs -o $failed_bs_sam -p failed_bs -r $genome_with_snps 
 
 #sam to fastq
 
@@ -70,14 +71,18 @@ genome_with_snps_bs_fw=$output_folder/genome_with_snps_bs_fw.fa
 annotations_fwd=$output_folder/meth_annotations_fwd.bed
 annotations_rev=$output_folder/meth_annotations_rev.bed
 
-fastx-mutate-tools snp --input $genome_with_snps --output $genome_with_snps_bs_fw --bs-fwd $bs_conversion_rate --output-methylation ${annotations_fwd}_temp --1-based
+if $create_bed; then
+	fastx-mutate-tools snp --input $genome_with_snps --output $genome_with_snps_bs_fw --bs-fwd $bs_conversion_rate --output-methylation ${annotations_fwd}_temp --1-based
+else
+	fastx-mutate-tools snp --input $genome_with_snps --output $genome_with_snps_bs_fw --bs-fwd $bs_conversion_rate --1-based
+fi
 
 #3.2) simulate sam fw strand
 
 number_bs_pairs=$((((100-bs_failure_rate)*number_of_pairs)/100))
 fwd_bs_sam=$output_folder/fwd_bs.sam
 
-simseq -1 $read_length -2 $read_length --error $error_profile_1 --error2 $error_profile_2 -n $number_bs_pairs -o $fwd_bs_sam -p fwd_bs -r $genome_with_snps_bs_fw
+simseq --inf_id -1 $read_length -2 $read_length --error $error_profile_1 --error2 $error_profile_2 -n $number_bs_pairs -o $fwd_bs_sam -p fwd_bs -r $genome_with_snps_bs_fw
 
 rm $genome_with_snps_bs_fw
 
@@ -85,14 +90,20 @@ rm $genome_with_snps_bs_fw
 
 genome_with_snps_bs_rev=$output_folder/genome_with_snps_bs_rev.fa
 
-fastx-mutate-tools snp --input $genome_with_snps --output $genome_with_snps_bs_rev --bs-rev $bs_conversion_rate --output-methylation ${annotations_rev}_temp --1-based
+if $create_bed; then
+	fastx-mutate-tools snp --input $genome_with_snps --output $genome_with_snps_bs_rev --bs-rev $bs_conversion_rate --output-methylation ${annotations_rev}_temp --1-based
+else
+	fastx-mutate-tools snp --input $genome_with_snps --output $genome_with_snps_bs_rev --bs-rev $bs_conversion_rate --1-based
+fi
 
 rm $genome_with_snps
 
-cat ${annotations_fwd}_temp | grep '+' > $annotations_fwd
-rm ${annotations_fwd}_temp
-cat ${annotations_rev}_temp | grep '-' > $annotations_rev
-rm ${annotations_rev}_temp
+if $create_bed; then
+	cat ${annotations_fwd}_temp | grep '+' > $annotations_fwd
+	rm ${annotations_fwd}_temp
+	cat ${annotations_rev}_temp | grep '-' > $annotations_rev
+	rm ${annotations_rev}_temp
+fi
 
 #3.4) simulate sam rev strand
 

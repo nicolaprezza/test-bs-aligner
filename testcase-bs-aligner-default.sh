@@ -16,10 +16,11 @@ fastx_mutate_tools_folder=~/workspace/fastx-mutate-tools
 snp_frequency=0.005 #on average, 1 snp every 200 bases
 indel_open_freq=0.0003 #equivalent to inserting 1M indels in the human genome
 indel_ext_freq=0.8 #average indel length is 5
-#number_of_pairs=1500
-number_of_pairs=100000000 #avg coverage = 3
+number_of_pairs=1500
+#number_of_pairs=6000000
 read_length=100
 bs_failure_rate=2 #percentage of read pairs that fail to be bs-converted
 bs_conversion_rate=0.5 #all Cs on fw/rev strands are converted to Ts with this probability
+create_bed=true #create .bed files with true methylation annotations?
 
-./testcase-bs-aligner.sh $input_genome $output_folder $simseq_folder $fastx_mutate_tools_folder $snp_frequency $indel_open_freq $indel_ext_freq $number_of_pairs $read_length $bs_failure_rate $bs_conversion_rate
+./testcase-bs-aligner.sh $input_genome $output_folder $simseq_folder $fastx_mutate_tools_folder $snp_frequency $indel_open_freq $indel_ext_freq $number_of_pairs $read_length $bs_failure_rate $bs_conversion_rate $create_bed
